@@ -1,16 +1,10 @@
-# study_planner
+# To Do App
 
-A new Flutter project.
+A beautiful flutter Android app that keeps track of the task inputed by user and displays them with different colours depending on the status of the app.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+! Make sure you have flutter installed.
+1. Navigate to the downloaded folder in command prompt and enter 'flutter run' to run a debug apk on a virtual machine.
+2. Enter 'flutter build apk' instead of the above command to build a stable apk.
+3. Extract the stable apk from build/app/outputs/flutter-apk/app-release.apk

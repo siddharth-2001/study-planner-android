@@ -1,113 +1,278 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hexcolor/hexcolor.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
+import 'package:flutter/services.dart';
+
+import './models/task.dart';
+import './widgets/radial_chart.dart';
+import './widgets/task_list.dart';
+import './widgets/new_task.dart';
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  FlutterDisplayMode.setHighRefreshRate();
+  runApp(StudyManager());
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class StudyManager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      home: HomePage(),
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+          primaryColor: HexColor('#4a148c'),
+          primaryColorLight: HexColor('#7c43bd'),
+          primaryColorDark: HexColor('#12005e'),
+          accentColor: HexColor('#d81b60'),
+          hintColor: HexColor('#12005e'),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                  primary: Theme.of(context).primaryColor)),
+          buttonTheme:
+              ButtonThemeData(buttonColor: Theme.of(context).primaryColor),
+          textTheme: GoogleFonts.robotoTextTheme().copyWith(
+              headline6: GoogleFonts.roboto().copyWith(
+                //fontWeight: FontWeight.normal,
+                fontSize: 16,
+              ),
+              headline4: GoogleFonts.roboto())),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomePage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  int nextId = 9;
+  var completedNum;
+  var pendingNum;
+  var dueNum;
+  static const String green = '#00e575';
+  static const String red = '#ff5722';
+  static const String yellow = '#fbc02d';
 
-  void _incrementCounter() {
+  void _getChartData(List chartData) {
+    completedNum = chartData[2]['total'];
+    pendingNum = chartData[1]['total'];
+    dueNum = chartData[0]['total'];
+    return;
+  }
+
+  void _editTask(int index, String title, String info, DateTime enteredDate,
+      bool isDone, double percDone, Color statusColor) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _allTasks[index].title = title;
+      _allTasks[index].info = info;
+      _allTasks[index].endDate = enteredDate;
+      _allTasks[index].isDone = isDone;
+      _allTasks[index].percDone = percDone;
+      _allTasks[index].statusColor = statusColor;
+    });
+
+    print(_allTasks[index].isDone);
+  }
+
+  void addTask(String title, String info, DateTime enteredDate, bool isDone,
+      double percDone, Color statusColor) {
+    Task newTask = Task(
+        title: title,
+        endDate: enteredDate,
+        info: info,
+        id: nextId,
+        isDone: isDone,
+        percDone: percDone,
+        statusColor: statusColor);
+    setState(() {
+      nextId += 1;
+      _allTasks.add(newTask);
     });
   }
 
+  void _showAddNewTask(context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (_) {
+          return NewTask(addTask);
+        },
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24))));
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      _allTasks.removeAt(index);
+    });
+  }
+
+  List<Task> _allTasks = [];
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final mediaQuery = MediaQuery.of(context);
+    final appBar = AppBar(
+      title: Text('DoobeDoobeDooba'),
+      brightness: Brightness.dark,
+    );
+
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      appBar: appBar,
+      backgroundColor: Theme.of(context).primaryColorLight,
+      body: SingleChildScrollView(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+          children: [
+            Container(
+              decoration: BoxDecoration(shape: BoxShape.rectangle),
+              height: (mediaQuery.size.height -
+                      mediaQuery.padding.top -
+                      appBar.preferredSize.height) *
+                  0.35,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Container(
+                    width: mediaQuery.size.width * 0.475,
+                    height: mediaQuery.size.width * 0.475,
+                    child: Card(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24)),
+                        child: TaskChart(_allTasks, _getChartData)),
+                  ),
+                  Container(
+                    width: mediaQuery.size.width * 0.475,
+                    height: mediaQuery.size.width * 0.475,
+                    child: Card(
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24)),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Summary',
+                                  style: Theme.of(context).textTheme.headline5),
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
+                                      children: [
+                                        Container(
+                                          height: 16,
+                                          width: 16,
+                                          margin: EdgeInsets.only(right: 4),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                            color: HexColor(green),
+                                          ),
+                                        ),
+                                        Text(
+                                          'Completed: $completedNum',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                            height: 16,
+                                            width: 16,
+                                            margin: EdgeInsets.only(right: 4),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              color: HexColor(yellow),
+                                            )),
+                                        Text(
+                                          'Pending: $pendingNum',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                            height: 16,
+                                            width: 16,
+                                            margin: EdgeInsets.only(right: 4),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(50),
+                                              color: HexColor(red),
+                                            )),
+                                        Text(
+                                          'Due: $dueNum',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            Container(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    color: HexColor('#e7b9ff')),
+                height: (mediaQuery.size.height -
+                        mediaQuery.padding.top -
+                        appBar.preferredSize.height) *
+                    0.65,
+                width: double.infinity,
+                child: _allTasks.length == 0
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Nothing to show'),
+                          Container(
+                              height: (mediaQuery.size.height -
+                                      mediaQuery.padding.top -
+                                      appBar.preferredSize.height) *
+                                  0.3,
+                              padding: EdgeInsets.all(24),
+                              child: Image.asset(
+                                'assets/images/waiting.png',
+                                fit: BoxFit.cover,
+                              )),
+                          Text('*cricket noises*')
+                        ],
+                      )
+                    : TaskList(_allTasks, _deleteTask, _editTask)),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: () {
+          _showAddNewTask(context);
+        },
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterFloat,
     );
   }
 }

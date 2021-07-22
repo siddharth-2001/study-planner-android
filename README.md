@@ -1,6 +1,6 @@
 # To Do App
 
-A beautiful flutter Android app that keeps track of the task inputed by user and displays them with different colours depending on the status of the app.
+A beautiful flutter Android app that keeps track of the tasks inputted by the user and displays them with different colours depending on the status of the task.
 
 ## Getting Started
 
